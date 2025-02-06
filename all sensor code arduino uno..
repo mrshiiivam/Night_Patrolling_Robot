@@ -1,0 +1,166 @@
+#include <Servo.h>
+int pos = 90;
+Servo servo_9;
+int val = 0 ; 
+
+//...........IR_SENSOOR...............
+  int IRSensor = 3; // connect ir sensor module to Arduino pin 9
+  int LED = 13; // conect LED to Arduino pin 13
+//....................................
+
+
+//.............GAS_SERVOR.............
+#define ledPin 6
+#define sensorPin A0
+//....................................
+
+
+
+//......ULTRASONIC_SENSOR........
+  int inches = 0, cm = 0;
+  long readUltrasonicDistance(int triggerPin, int echoPin)
+  {
+    pinMode(triggerPin, OUTPUT);
+    digitalWrite(triggerPin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(triggerPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(triggerPin, LOW);
+    pinMode(echoPin, INPUT);
+    return pulseIn(echoPin, HIGH);
+  }
+//................................
+
+
+//........GAS_SENSOR..............
+  //  This function returns the analog data to calling function
+  int readSensor() 
+  {
+    unsigned int sensorValue = analogRead(sensorPin);  // Read the analog value from sensor
+    unsigned int outputValue = map(sensorValue, 0, 1023, 0, 255); // map the 10-bit data to 8-bit data
+    if (outputValue > 65)
+      analogWrite(ledPin, outputValue); // generate PWM signal
+    else
+      digitalWrite(ledPin, LOW);
+    return outputValue;             // Return analog moisture value
+  }
+
+//................................
+
+
+
+void setup()
+{
+    servo_9.attach(9, 500, 2500);
+    Serial.begin(9600);
+
+
+
+//........IR_SENSOR...............
+    Serial.begin(9600); // Init Serila at 115200 Baud
+    Serial.println("Serial Working"); // Test to check if serial is working or not
+    pinMode(IRSensor, INPUT); // IR Sensor pin INPUT
+    pinMode(LED, OUTPUT); // LED Pin Output
+//................................
+
+
+  
+//.........GAS SENSOOR............
+    Serial.begin(9600);
+    pinMode(ledPin, OUTPUT);
+    digitalWrite(ledPin, LOW);
+//................................
+
+
+//.........FLAME_SENSOR...........
+    Serial.begin(9600);  
+    pinMode(2,INPUT); // Flame sensor output pin connected   
+      
+//................................
+  
+  
+}
+
+void loop()
+{
+  
+//......ULTRASONIC_SENSOR........
+    cm = 0.01723 * readUltrasonicDistance(7, 7); // Both echo & trig are connected with D7
+    inches = (cm / 2.54);
+    Serial.print(inches);
+    Serial.print("in, ");
+    Serial.print(cm);
+    Serial.println("cm");
+    //delay(100); // Wait for 100 millisecond(s)
+  
+//...............................
+
+
+//.........SERVO.................
+
+  for (pos = 90; pos <= 180; pos += 1)
+  {
+      servo_9.write(pos);
+      delay(15); 
+  }
+  for (pos = 180; pos >= 90; pos -= 1)
+  {
+      servo_9.write(pos);
+      delay(15); 
+  }
+  for (pos = 90; pos >= 0; pos -= 1)
+  {
+      servo_9.write(pos);
+      delay(15); 
+  }
+  for (pos = 0; pos <= 90; pos += 1)
+  {
+      servo_9.write(pos);
+      delay(15);
+  }
+  //delay(100);
+
+//.................................
+
+
+
+
+//...........IR_SENSOR.............
+  int sensorStatus = digitalRead(IRSensor); // Set the GPIO as Input
+  if (sensorStatus == 1) // Check if the pin high or not
+  {
+    // if the pin is high turn off the onboard Led
+      digitalWrite(LED, LOW); // LED LOW
+      Serial.println("Motion Ended!"); // print Motion Detected! on the serial monitor window
+    
+  }
+  else
+  {
+      //else turn on the onboard LED
+      digitalWrite(LED, HIGH); // LED High
+      Serial.println("Motion Detected!"); // print Motion Ended! on the serial monitor window
+  }
+  
+//.................................
+
+
+
+
+//............GAS_SENSOR...........
+
+    Serial.print("Analog output: ");
+    Serial.println(readSensor());
+    delay(100);
+  
+//.................................
+
+
+
+
+//..........FLAME_SENSOR...........
+    val = digitalRead(2); // Flame sensor output pin connected  
+    Serial.println(val); // see the value in serial mpnitor in Arduino IDE  
+    delay(10);  
+     
+//.................................
+}
